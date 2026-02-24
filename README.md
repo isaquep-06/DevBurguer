@@ -19,7 +19,7 @@ O projeto foi desenvolvido com foco em autenticação segura, organização de c
 - Yup
 - Docker
 
-### 🔹 Front-end
+### 🔹 Front-end (Em andamento)*
 - React
 - JavaScript (ES6+)
 - Axios
