@@ -4,31 +4,31 @@ import Category from '../models/Category.js';
 
 class CategoryController {
   async store(req, res) {
+    console.log('Headers recebidos:', req.headers);  // <--- aqui
+    console.log('Body recebido:', req.body);
+    console.log('Arquivo recebido:', req.file);
+
     const scheme = Yup.object({
       name: Yup.string().required(),
     });
 
-    // Validation with yup
     try {
       scheme.validateSync(req.body, {
-        abortEarly: false, // Receiver all erros = false
-        strict: true, // Do not invert data = true
+        abortEarly: false,
+        strict: true,
       });
     } catch (err) {
       return res.status(400).json({ message: err.errors });
     }
 
     const { name } = req.body;
-
     let path;
     if (req.file) {
       path = req.file.filename;
     }
 
     const existingCategory = await Category.findOne({
-      where: {
-        name,
-      },
+      where: { name },
     });
 
     if (existingCategory) {
@@ -39,8 +39,6 @@ class CategoryController {
       name,
       path: path
     });
-
-
 
     res.status(200).json({ data: newCategory });
   }

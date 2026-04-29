@@ -1,13 +1,11 @@
-// Imports configs
 import { Sequelize } from 'sequelize';
 import mongoose from 'mongoose';
 import databaseConfig from '../config/database.cjs';
-// Controllers
+
 import User from '../app/models/User.js';
 import Product from '../app/models/Product.js';
 import Category from '../app/models/Category.js';
 
-// Lista das Models..
 const models = [User, Product, Category];
 
 class Database {
@@ -15,22 +13,37 @@ class Database {
     this.init();
     this.mongo();
   }
-  init() {
-    this.connection = new Sequelize(databaseConfig);
-    models
-      .map((model) => model.init(this.connection))
-      .map(
-        (models) =>
-          models.associate && models.associate(this.connection.models),
-      );
 
-    console.log("Conexão feita! 🚀🔥")
+  async init() {
+    try {
+      this.connection = new Sequelize(databaseConfig);
+
+      await this.connection.authenticate();
+
+      console.log("Banco PostgreSQL conectado! 🚀");
+
+      models
+        .map((model) => model.init(this.connection))
+        .map(
+          (model) =>
+            model.associate && model.associate(this.connection.models),
+        );
+
+    } catch (error) {
+      console.error("Erro ao conectar no PostgreSQL:", error);
+    }
   }
 
-  mongo() {
-    this.connectionMongo = mongoose.connect(
-      'mongodb://localhost:27017/devburguer',);
+  async mongo() {
+    try {
+      await mongoose.connect('mongodb://localhost:27017/devburguer');
+
+      console.log("MongoDB conectado! 🍃");
+
+    } catch (error) {
+      console.error("Erro ao conectar no MongoDB:", error);
+    }
   }
 }
 
-export default new Database(); // Exportando já estanciada!
+export default new Database();

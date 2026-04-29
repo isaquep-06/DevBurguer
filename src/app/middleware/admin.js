@@ -1,9 +1,7 @@
 const adminMiddleware = async (req, res, next) => {
-  const userIsAdmin = req.isUserAdmin;
-
-
-  if (userIsAdmin) {
-    return res.status(401).json();
+  if (!req.userIsAdmin) {
+    console.log('Token recebido:', req.headers.authorization);
+    return res.status(401).json({ message: 'Admin only' });
   }
 
   return next();

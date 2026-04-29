@@ -3,68 +3,60 @@ import bcrypt from 'bcrypt';
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import authConfig from '../../config/auth.js';
+import e from 'express';
 
 class SessionController {
   async store(req, res) {
-    const scheme = Yup.object({
+    const schema = Yup.object({
       email: Yup.string().email().required(),
       password: Yup.string().min(6).required(),
     });
 
-    const isValidUser = await scheme.isValid(req.body, {
-      abortEarly: false,
-      strict: true,
-    });
 
-    const EmailOrPasswordIncorrect = () => {
-      // Array function, for save code
-      return res.status(400).json({ error: 'Email or Password incorrect' });
-    };
+    const isValid = await schema.isValid(req.body);
 
-    // Conditional
-    if (!isValidUser) {
-      return EmailOrPasswordIncorrect(); // Call functions for response
+    if (!isValid) {
+      return res.status(400).json({ error: "Email or Password incorrect" });
     }
 
-    const { id, email, password, admin } = req.body;
+    const { email, password } = req.body;
 
-    const existingUser = await User.findOne({
-      where: {
-        email,
-      },
+    const user = await User.findOne({
+      where: { email },
     });
 
-    if (!existingUser) {
-      return EmailOrPasswordIncorrect();
+    if (!user) {
+      return res.status(400).json({ error: "Email or Password incorrect" });
     }
 
-    const isPasswordCorrect = await bcrypt.compare(
+    const passwordMatch = await bcrypt.compare(
       password,
-      existingUser.password_hash,
+      user.password_hash
     );
 
-    if (!isPasswordCorrect) {
-      return EmailOrPasswordIncorrect();
+    if (!passwordMatch) {
+      return res.status(400).json({ error: "Email or Password incorrect" });
     }
 
     const token = jwt.sign(
-      { id: existingUser.id, admin: existingUser.admin }, // Saving data in JWT
+      {
+        id: user.id,
+        admin: user.admin,
+        name: user.name
+      },
       authConfig.secret,
       {
-        // Secret word
-        expiresIn: authConfig.expiresIn, // Expiration token
-      },
+        expiresIn: authConfig.expiresIn
+      }
     );
 
-    req.isUserAdmin = existingUser.admin;
-
-    console.log(req.isUserAdmin);
-    return res.status(200).json({
-      message: `Bem vindo ${existingUser.name}`,
-      token: token,
-      admin: admin,
-    }); // if everything is correct
+    return res.json({
+      name: `${user.name}`,
+      token,
+      admin: user.admin
+    });
   }
 }
 
 export default new SessionController();
+

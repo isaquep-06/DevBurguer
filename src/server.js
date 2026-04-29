@@ -1,5 +1,4 @@
 import app from './app.js'; // importando app = express
-import User from './app/models/User.js';
 const port = 3000;
 
 app.get('/', (req, res) => {
